@@ -1,0 +1,147 @@
+import javax.swing.*;
+import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+
+public class UltimateTicTacToe extends JFrame {
+
+    private Player[][] ultimateBoard;
+    private Player currentPlayer;
+    private Integer activeBoard;
+    private Player winner;
+
+    private JButton[][] buttons;
+
+    public UltimateTicTacToe() {
+        ultimateBoard = new Player[9][9];
+        currentPlayer = Player.X;
+        activeBoard = null;
+        winner = null;
+
+        buttons = new JButton[9][9];
+
+        JPanel mainPanel = new JPanel();
+        mainPanel.setLayout(new GridLayout(3, 3));
+
+        for (int i = 0; i < 9; i++) {
+            JPanel boardPanel = new JPanel();
+            boardPanel.setLayout(new GridLayout(3, 3));
+
+            for (int j = 0; j < 9; j++) {
+                JButton button = new JButton();
+                button.addActionListener(new ButtonListener(i, j));
+                buttons[i][j] = button;
+                boardPanel.add(button);
+            }
+
+            mainPanel.add(boardPanel);
+        }
+
+        add(mainPanel, BorderLayout.CENTER);
+
+        JLabel statusLabel = new JLabel("Current Player: X");
+        add(statusLabel, BorderLayout.SOUTH);
+
+        setSize(600, 600);
+        setDefaultCloseOperation(EXIT_ON_CLOSE);
+        setVisible(true);
+    }
+
+    private class ButtonListener implements ActionListener {
+        private int boardIndex;
+        private int cellIndex;
+
+        public ButtonListener(int boardIndex, int cellIndex) {
+            this.boardIndex = boardIndex;
+            this.cellIndex = cellIndex;
+        }
+
+        @Override
+        public void actionPerformed(ActionEvent e) {
+            if (winner != null || (activeBoard != null && activeBoard != boardIndex) || ultimateBoard[boardIndex][cellIndex] != null) {
+                return;
+            }
+
+            ultimateBoard[boardIndex][cellIndex] = currentPlayer;
+
+            Player boardWinner = checkWinner(ultimateBoard[boardIndex]);
+            if (boardWinner != null) {
+                for (int i = 0; i < 9; i++) {
+                    ultimateBoard[boardIndex][i] = boardWinner;
+                }
+
+                Player ultimateWinner = checkWinner(getUltimateBoard());
+                if (ultimateWinner != null) {
+                    winner = ultimateWinner;
+                    JOptionPane.showMessageDialog(null, "Winner: " + winner);
+                }
+            }
+
+            currentPlayer = currentPlayer == Player.X ? Player.O : Player.X;
+            activeBoard = isBoardFull(ultimateBoard[cellIndex]) ? null : cellIndex;
+
+            updateGUI();
+        }
+    }
+
+    private Player checkWinner(Player[] board) {
+        int[][] winningCombinations = {
+                {0, 1, 2},
+                {3, 4, 5},
+                {6, 7, 8},
+                {0, 3, 6},
+                {1, 4, 7},
+                {2, 5, 8},
+                {0, 4, 8},
+                {2, 4, 6}
+        };
+
+        for (int[] combo : winningCombinations) {
+            if (board[combo[0]] != null && board[combo[0]] == board[combo[1]] && board[combo[0]] == board[combo[2]]) {
+                return board[combo[0]];
+            }
+        }
+
+        return null;
+    }
+
+    private Player[] getUltimateBoard() {
+        Player[] ultimateBoard = new Player[9];
+
+        for (int i = 0; i < 9; i++) {
+            ultimateBoard[i] = ultimateBoard[i][0];
+        }
+
+        return ultimateBoard;
+    }
+
+    private boolean isBoardFull(Player[] board) {
+        for (Player player : board) {
+            if (player == null) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    private void updateGUI() {
+        for (int i = 0; i < 9; i++) {
+            for (int j = 0; j < 9; j++) {
+                if (ultimateBoard[i][j] == Player.X) {
+                    buttons[i][j].setText("X");
+                } else if (ultimateBoard[i][j] == Player.O) {
+                    buttons[i][j].setText("O");
+                }
+            }
+        }
+    }
+
+    private enum Player {
+        X, O
+    }
+
+    public static void main(String[] args) {
+        new UltimateTicTacToe();
+    }
+}
